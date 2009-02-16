@@ -1,4 +1,7 @@
 module AASM
+
+  # When raising a guard failure, simply give an explanation i.e. "the value is not in the allowed range" similar to
+  # the :message specification for AR validations.
   class GuardFailure < RuntimeError; end
 
   module SupportingClasses
@@ -22,10 +25,10 @@ module AASM
           end
 
           # Catch generic false return with no exception raised
-          raise(GuardFailure, "Guard process did not pass.") unless guard_result
+          raise(GuardFailure, "the guard process did not pass") unless guard_result
 
         rescue GuardFailure => e
-          obj.errors.send(:add, obj.class.aasm_column.to_sym, e.message)
+          obj.errors.send(:add, obj.class.aasm_column.to_sym, "is invalid because #{e.message}")
           false
         else
           true
