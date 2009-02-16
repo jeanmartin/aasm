@@ -1,4 +1,6 @@
 module AASM
+  class GuardFailure < RuntimeError; end
+
   module SupportingClasses
     class StateTransition
       attr_reader :from, :to, :opts
@@ -9,20 +11,24 @@ module AASM
       end
 
       def perform(obj)
-        result = case @guard
-        when Symbol, String
-          obj.send(@guard)
-        when Proc
-          @guard.call(obj)
-        else
-          true
-        end
+        result = begin
+          guard_result = case @guard
+          when Symbol, String
+            obj.send(@guard)
+          when Proc
+            @guard.call(obj)
+          else
+            true
+          end
 
-        if result
-          true
-        else
-          obj.errors.send(:add, obj.class.aasm_column.to_sym, @failure_message)
+          # Catch generic false return with no exception raised
+          raise(GuardFailure, "Guard process did not pass.") unless guard_result
+
+        rescue GuardFailure => e
+          obj.errors.send(:add, obj.class.aasm_column.to_sym, e.message)
           false
+        else
+          true
         end
       end
       
