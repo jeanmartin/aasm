@@ -25,7 +25,7 @@ module AASM
           end
 
           # Catch generic false return with no exception raised
-          raise(GuardFailure, I18n.t('activerecord.errors.messages.guard_fail', :default => 'guard condition(s) failed')) unless guard_result
+          raise(GuardFailure, I18n.t('activerecord.errors.messages.guard_fail', :default => 'guard condition(s) failed')) unless result
 
         rescue GuardFailure => e
           obj.errors.send(:add, obj.class.aasm_column.to_sym, e.message)
